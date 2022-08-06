@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HealthChecker(c *gin.Context){
+func HealthChecker(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
-        "status": "ok",
-    })
+		"status": "ok",
+	})
 }
