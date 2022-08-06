@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: db
+    image: mysql:8.0
+    platform: linux/x86_64
+    tty: true
+    ports:
+      - 3306:3306
+    env_file:
+      - ./.env_mysql
+    environment:
+      LANG: ja_JP.UTF-8
+    volumes:
+      - type: volume
+        source: mysql-data
+        target: /var/lib/mysql
+        
+volumes:
+  mysql-data:
+    name: mysql-volume
