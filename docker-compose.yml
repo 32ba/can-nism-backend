@@ -5,6 +5,7 @@ services:
     container_name: db
     image: mysql:8.0
     platform: linux/x86_64
+    hostname: db
     tty: true
     ports:
       - 3306:3306
@@ -16,6 +17,17 @@ services:
       - type: volume
         source: mysql-data
         target: /var/lib/mysql
+  
+  go-server:
+    container_name: go-server
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    
         
 volumes:
   mysql-data:
