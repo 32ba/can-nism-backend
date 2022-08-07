@@ -27,7 +27,7 @@ func UserSignup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	user, err := model.DBClient.User.
 		Create().
 		SetGUID(signupRequest.GUID).
