@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"go-ranking-api/ent/ranking"
+	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 	"strings"
 	"time"
@@ -37,9 +38,11 @@ type User struct {
 type UserEdges struct {
 	// Record holds the value of the record edge.
 	Record *Ranking `json:"record,omitempty"`
+	// Token holds the value of the token edge.
+	Token *Token `json:"token,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // RecordOrErr returns the Record value or an error if the edge
@@ -54,6 +57,20 @@ func (e UserEdges) RecordOrErr() (*Ranking, error) {
 		return e.Record, nil
 	}
 	return nil, &NotLoadedError{edge: "record"}
+}
+
+// TokenOrErr returns the Token value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) TokenOrErr() (*Token, error) {
+	if e.loadedTypes[1] {
+		if e.Token == nil {
+			// The edge token was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: token.Label}
+		}
+		return e.Token, nil
+	}
+	return nil, &NotLoadedError{edge: "token"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -128,6 +145,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 // QueryRecord queries the "record" edge of the User entity.
 func (u *User) QueryRecord() *RankingQuery {
 	return (&UserClient{config: u.config}).QueryRecord(u)
+}
+
+// QueryToken queries the "token" edge of the User entity.
+func (u *User) QueryToken() *TokenQuery {
+	return (&UserClient{config: u.config}).QueryToken(u)
 }
 
 // Update returns a builder for updating this User.

@@ -5,6 +5,7 @@ package ent
 import (
 	"go-ranking-api/ent/ranking"
 	"go-ranking-api/ent/schema"
+	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 	"time"
 )
@@ -29,6 +30,18 @@ func init() {
 	ranking.DefaultUpdatedAt = rankingDescUpdatedAt.Default.(func() time.Time)
 	// ranking.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	ranking.UpdateDefaultUpdatedAt = rankingDescUpdatedAt.UpdateDefault.(func() time.Time)
+	tokenFields := schema.Token{}.Fields()
+	_ = tokenFields
+	// tokenDescCreatedAt is the schema descriptor for created_at field.
+	tokenDescCreatedAt := tokenFields[4].Descriptor()
+	// token.DefaultCreatedAt holds the default value on creation for the created_at field.
+	token.DefaultCreatedAt = tokenDescCreatedAt.Default.(func() time.Time)
+	// tokenDescUpdatedAt is the schema descriptor for updated_at field.
+	tokenDescUpdatedAt := tokenFields[5].Descriptor()
+	// token.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	token.DefaultUpdatedAt = tokenDescUpdatedAt.Default.(func() time.Time)
+	// token.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	token.UpdateDefaultUpdatedAt = tokenDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.

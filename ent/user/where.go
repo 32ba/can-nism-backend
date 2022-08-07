@@ -574,6 +574,34 @@ func HasRecordWith(preds ...predicate.Ranking) predicate.User {
 	})
 }
 
+// HasToken applies the HasEdge predicate on the "token" edge.
+func HasToken() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TokenTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, TokenTable, TokenColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTokenWith applies the HasEdge predicate on the "token" edge with a given conditions (other predicates).
+func HasTokenWith(preds ...predicate.Token) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TokenInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, TokenTable, TokenColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

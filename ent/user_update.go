@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"go-ranking-api/ent/predicate"
 	"go-ranking-api/ent/ranking"
+	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 	"time"
 
@@ -87,6 +88,25 @@ func (uu *UserUpdate) SetRecord(r *Ranking) *UserUpdate {
 	return uu.SetRecordID(r.ID)
 }
 
+// SetTokenID sets the "token" edge to the Token entity by ID.
+func (uu *UserUpdate) SetTokenID(id int) *UserUpdate {
+	uu.mutation.SetTokenID(id)
+	return uu
+}
+
+// SetNillableTokenID sets the "token" edge to the Token entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableTokenID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetTokenID(*id)
+	}
+	return uu
+}
+
+// SetToken sets the "token" edge to the Token entity.
+func (uu *UserUpdate) SetToken(t *Token) *UserUpdate {
+	return uu.SetTokenID(t.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -95,6 +115,12 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 // ClearRecord clears the "record" edge to the Ranking entity.
 func (uu *UserUpdate) ClearRecord() *UserUpdate {
 	uu.mutation.ClearRecord()
+	return uu
+}
+
+// ClearToken clears the "token" edge to the Token entity.
+func (uu *UserUpdate) ClearToken() *UserUpdate {
+	uu.mutation.ClearToken()
 	return uu
 }
 
@@ -264,6 +290,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.TokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TokenTable,
+			Columns: []string{user.TokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: token.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.TokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TokenTable,
+			Columns: []string{user.TokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: token.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -340,6 +401,25 @@ func (uuo *UserUpdateOne) SetRecord(r *Ranking) *UserUpdateOne {
 	return uuo.SetRecordID(r.ID)
 }
 
+// SetTokenID sets the "token" edge to the Token entity by ID.
+func (uuo *UserUpdateOne) SetTokenID(id int) *UserUpdateOne {
+	uuo.mutation.SetTokenID(id)
+	return uuo
+}
+
+// SetNillableTokenID sets the "token" edge to the Token entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableTokenID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetTokenID(*id)
+	}
+	return uuo
+}
+
+// SetToken sets the "token" edge to the Token entity.
+func (uuo *UserUpdateOne) SetToken(t *Token) *UserUpdateOne {
+	return uuo.SetTokenID(t.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -348,6 +428,12 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 // ClearRecord clears the "record" edge to the Ranking entity.
 func (uuo *UserUpdateOne) ClearRecord() *UserUpdateOne {
 	uuo.mutation.ClearRecord()
+	return uuo
+}
+
+// ClearToken clears the "token" edge to the Token entity.
+func (uuo *UserUpdateOne) ClearToken() *UserUpdateOne {
+	uuo.mutation.ClearToken()
 	return uuo
 }
 
@@ -539,6 +625,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: ranking.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.TokenCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TokenTable,
+			Columns: []string{user.TokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: token.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.TokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TokenTable,
+			Columns: []string{user.TokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: token.FieldID,
 				},
 			},
 		}

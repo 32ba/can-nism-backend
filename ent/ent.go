@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"go-ranking-api/ent/ranking"
+	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 
 	"entgo.io/ent"
@@ -33,6 +34,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		ranking.Table: ranking.ValidColumn,
+		token.Table:   token.ValidColumn,
 		user.Table:    user.ValidColumn,
 	}
 	check, ok := checks[table]

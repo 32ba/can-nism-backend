@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"go-ranking-api/ent/ranking"
+	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 	"time"
 
@@ -93,6 +94,25 @@ func (uc *UserCreate) SetNillableRecordID(id *int) *UserCreate {
 // SetRecord sets the "record" edge to the Ranking entity.
 func (uc *UserCreate) SetRecord(r *Ranking) *UserCreate {
 	return uc.SetRecordID(r.ID)
+}
+
+// SetTokenID sets the "token" edge to the Token entity by ID.
+func (uc *UserCreate) SetTokenID(id int) *UserCreate {
+	uc.mutation.SetTokenID(id)
+	return uc
+}
+
+// SetNillableTokenID sets the "token" edge to the Token entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableTokenID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetTokenID(*id)
+	}
+	return uc
+}
+
+// SetToken sets the "token" edge to the Token entity.
+func (uc *UserCreate) SetToken(t *Token) *UserCreate {
+	return uc.SetTokenID(t.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -279,6 +299,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: ranking.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.TokenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.TokenTable,
+			Columns: []string{user.TokenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: token.FieldID,
 				},
 			},
 		}

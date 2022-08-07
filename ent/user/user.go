@@ -23,6 +23,8 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// EdgeRecord holds the string denoting the record edge name in mutations.
 	EdgeRecord = "record"
+	// EdgeToken holds the string denoting the token edge name in mutations.
+	EdgeToken = "token"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// RecordTable is the table that holds the record relation/edge.
@@ -32,6 +34,13 @@ const (
 	RecordInverseTable = "rankings"
 	// RecordColumn is the table column denoting the record relation/edge.
 	RecordColumn = "user_record"
+	// TokenTable is the table that holds the token relation/edge.
+	TokenTable = "tokens"
+	// TokenInverseTable is the table name for the Token entity.
+	// It exists in this package in order to avoid circular dependency with the "token" package.
+	TokenInverseTable = "tokens"
+	// TokenColumn is the table column denoting the token relation/edge.
+	TokenColumn = "user_token"
 )
 
 // Columns holds all SQL columns for user fields.
