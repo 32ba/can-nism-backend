@@ -10,3 +10,7 @@ type UserSignupRequest struct {
 type AccessTokenRefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
+
+type AddRankingRequest struct {
+	Score int64 `json:"score"`
+}

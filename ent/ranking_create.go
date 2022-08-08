@@ -10,6 +10,7 @@ import (
 	"go-ranking-api/ent/user"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
@@ -19,6 +20,7 @@ type RankingCreate struct {
 	config
 	mutation *RankingMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetScore sets the "score" field.
@@ -218,6 +220,7 @@ func (rc *RankingCreate) createSpec() (*Ranking, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = rc.conflict
 	if value, ok := rc.mutation.Score(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt64,
@@ -273,10 +276,272 @@ func (rc *RankingCreate) createSpec() (*Ranking, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Ranking.Create().
+//		SetScore(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RankingUpsert) {
+//			SetScore(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (rc *RankingCreate) OnConflict(opts ...sql.ConflictOption) *RankingUpsertOne {
+	rc.conflict = opts
+	return &RankingUpsertOne{
+		create: rc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Ranking.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (rc *RankingCreate) OnConflictColumns(columns ...string) *RankingUpsertOne {
+	rc.conflict = append(rc.conflict, sql.ConflictColumns(columns...))
+	return &RankingUpsertOne{
+		create: rc,
+	}
+}
+
+type (
+	// RankingUpsertOne is the builder for "upsert"-ing
+	//  one Ranking node.
+	RankingUpsertOne struct {
+		create *RankingCreate
+	}
+
+	// RankingUpsert is the "OnConflict" setter.
+	RankingUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetScore sets the "score" field.
+func (u *RankingUpsert) SetScore(v int64) *RankingUpsert {
+	u.Set(ranking.FieldScore, v)
+	return u
+}
+
+// UpdateScore sets the "score" field to the value that was provided on create.
+func (u *RankingUpsert) UpdateScore() *RankingUpsert {
+	u.SetExcluded(ranking.FieldScore)
+	return u
+}
+
+// AddScore adds v to the "score" field.
+func (u *RankingUpsert) AddScore(v int64) *RankingUpsert {
+	u.Add(ranking.FieldScore, v)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *RankingUpsert) SetCreatedAt(v time.Time) *RankingUpsert {
+	u.Set(ranking.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *RankingUpsert) UpdateCreatedAt() *RankingUpsert {
+	u.SetExcluded(ranking.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RankingUpsert) SetUpdatedAt(v time.Time) *RankingUpsert {
+	u.Set(ranking.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RankingUpsert) UpdateUpdatedAt() *RankingUpsert {
+	u.SetExcluded(ranking.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RankingUpsert) SetDeletedAt(v time.Time) *RankingUpsert {
+	u.Set(ranking.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RankingUpsert) UpdateDeletedAt() *RankingUpsert {
+	u.SetExcluded(ranking.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RankingUpsert) ClearDeletedAt() *RankingUpsert {
+	u.SetNull(ranking.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.Ranking.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+//
+func (u *RankingUpsertOne) UpdateNewValues() *RankingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(ranking.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//  client.Ranking.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
+func (u *RankingUpsertOne) Ignore() *RankingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RankingUpsertOne) DoNothing() *RankingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RankingCreate.OnConflict
+// documentation for more info.
+func (u *RankingUpsertOne) Update(set func(*RankingUpsert)) *RankingUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RankingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetScore sets the "score" field.
+func (u *RankingUpsertOne) SetScore(v int64) *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetScore(v)
+	})
+}
+
+// AddScore adds v to the "score" field.
+func (u *RankingUpsertOne) AddScore(v int64) *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.AddScore(v)
+	})
+}
+
+// UpdateScore sets the "score" field to the value that was provided on create.
+func (u *RankingUpsertOne) UpdateScore() *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateScore()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *RankingUpsertOne) SetCreatedAt(v time.Time) *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *RankingUpsertOne) UpdateCreatedAt() *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RankingUpsertOne) SetUpdatedAt(v time.Time) *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RankingUpsertOne) UpdateUpdatedAt() *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RankingUpsertOne) SetDeletedAt(v time.Time) *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RankingUpsertOne) UpdateDeletedAt() *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RankingUpsertOne) ClearDeletedAt() *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *RankingUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RankingCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RankingUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *RankingUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *RankingUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // RankingCreateBulk is the builder for creating many Ranking entities in bulk.
 type RankingCreateBulk struct {
 	config
 	builders []*RankingCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Ranking entities in the database.
@@ -303,6 +568,7 @@ func (rcb *RankingCreateBulk) Save(ctx context.Context) ([]*Ranking, error) {
 					_, err = mutators[i+1].Mutate(root, rcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = rcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, rcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -353,6 +619,188 @@ func (rcb *RankingCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (rcb *RankingCreateBulk) ExecX(ctx context.Context) {
 	if err := rcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Ranking.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RankingUpsert) {
+//			SetScore(v+v).
+//		}).
+//		Exec(ctx)
+//
+func (rcb *RankingCreateBulk) OnConflict(opts ...sql.ConflictOption) *RankingUpsertBulk {
+	rcb.conflict = opts
+	return &RankingUpsertBulk{
+		create: rcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Ranking.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+//
+func (rcb *RankingCreateBulk) OnConflictColumns(columns ...string) *RankingUpsertBulk {
+	rcb.conflict = append(rcb.conflict, sql.ConflictColumns(columns...))
+	return &RankingUpsertBulk{
+		create: rcb,
+	}
+}
+
+// RankingUpsertBulk is the builder for "upsert"-ing
+// a bulk of Ranking nodes.
+type RankingUpsertBulk struct {
+	create *RankingCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Ranking.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+//
+func (u *RankingUpsertBulk) UpdateNewValues() *RankingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(ranking.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Ranking.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+//
+func (u *RankingUpsertBulk) Ignore() *RankingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RankingUpsertBulk) DoNothing() *RankingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RankingCreateBulk.OnConflict
+// documentation for more info.
+func (u *RankingUpsertBulk) Update(set func(*RankingUpsert)) *RankingUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RankingUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetScore sets the "score" field.
+func (u *RankingUpsertBulk) SetScore(v int64) *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetScore(v)
+	})
+}
+
+// AddScore adds v to the "score" field.
+func (u *RankingUpsertBulk) AddScore(v int64) *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.AddScore(v)
+	})
+}
+
+// UpdateScore sets the "score" field to the value that was provided on create.
+func (u *RankingUpsertBulk) UpdateScore() *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateScore()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *RankingUpsertBulk) SetCreatedAt(v time.Time) *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *RankingUpsertBulk) UpdateCreatedAt() *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *RankingUpsertBulk) SetUpdatedAt(v time.Time) *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *RankingUpsertBulk) UpdateUpdatedAt() *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *RankingUpsertBulk) SetDeletedAt(v time.Time) *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *RankingUpsertBulk) UpdateDeletedAt() *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *RankingUpsertBulk) ClearDeletedAt() *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *RankingUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the RankingCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for RankingCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RankingUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

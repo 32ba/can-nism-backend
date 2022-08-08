@@ -20,6 +20,10 @@ func main() {
 		{
 			tokenEngine.POST("/refresh", controller.RefreshAccessToken)
 		}
+		rankingEngine := apiV1.Group("/ranking")
+		{
+			rankingEngine.POST("/add", controller.AddRanking)
+		}
 	}
 
 	engine.Run(":8080")
