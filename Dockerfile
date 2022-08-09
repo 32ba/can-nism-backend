@@ -1,9 +1,9 @@
 FROM golang:1.18-alpine as build
 WORKDIR /workspace
 ENV CGO_ENABLED=0
-COPY go.* .
+COPY go.* ./
 RUN go mod download
-COPY . .
+COPY ./ ./
 RUN env GO111MODULE=on go build -ldflags="-s -w" -o app 
 
 
