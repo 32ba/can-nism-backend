@@ -12,7 +12,8 @@ type AccessTokenRefreshRequest struct {
 }
 
 type AddRankingRequest struct {
-	Score int64 `json:"score"`
+	SongUUID uuid.UUID `json:"song_uuid"`
+	Score    int64     `json:"score"`
 }
 
 type GetRankingRequest struct {

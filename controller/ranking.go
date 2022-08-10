@@ -50,6 +50,7 @@ func AddRanking(c *gin.Context) {
 
 	err = model.DBClient.Ranking.Create().
 		SetScore(addRankingRequest.Score).
+		SetSongUUID(addRankingRequest.SongUUID).
 		SetUser(user).
 		OnConflict().
 		UpdateScore().
@@ -92,7 +93,7 @@ func GetRanking(c *gin.Context) {
 	for i, e := range ranking {
 		var elem repository.Ranking
 		elem.Name = e.Edges.User.Name
-		elem.Rank = i+1
+		elem.Rank = i + 1
 		elem.Score = int(e.Score)
 		r = append(r, elem)
 	}

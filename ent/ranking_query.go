@@ -299,7 +299,6 @@ func (rq *RankingQuery) WithUser(opts ...func(*UserQuery)) *RankingQuery {
 //		GroupBy(ranking.FieldScore).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (rq *RankingQuery) GroupBy(field string, fields ...string) *RankingGroupBy {
 	grbuild := &RankingGroupBy{config: rq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -326,7 +325,6 @@ func (rq *RankingQuery) GroupBy(field string, fields ...string) *RankingGroupBy 
 //	client.Ranking.Query().
 //		Select(ranking.FieldScore).
 //		Scan(ctx, &v)
-//
 func (rq *RankingQuery) Select(fields ...string) *RankingSelect {
 	rq.fields = append(rq.fields, fields...)
 	selbuild := &RankingSelect{RankingQuery: rq}

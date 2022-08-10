@@ -310,7 +310,6 @@ func (rc *RankingCreate) createSpec() (*Ranking, *sqlgraph.CreateSpec) {
 //			SetScore(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (rc *RankingCreate) OnConflict(opts ...sql.ConflictOption) *RankingUpsertOne {
 	rc.conflict = opts
 	return &RankingUpsertOne{
@@ -324,7 +323,6 @@ func (rc *RankingCreate) OnConflict(opts ...sql.ConflictOption) *RankingUpsertOn
 //	client.Ranking.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (rc *RankingCreate) OnConflictColumns(columns ...string) *RankingUpsertOne {
 	rc.conflict = append(rc.conflict, sql.ConflictColumns(columns...))
 	return &RankingUpsertOne{
@@ -425,7 +423,6 @@ func (u *RankingUpsert) ClearDeletedAt() *RankingUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *RankingUpsertOne) UpdateNewValues() *RankingUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -439,10 +436,9 @@ func (u *RankingUpsertOne) UpdateNewValues() *RankingUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.Ranking.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.Ranking.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *RankingUpsertOne) Ignore() *RankingUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -682,7 +678,6 @@ func (rcb *RankingCreateBulk) ExecX(ctx context.Context) {
 //			SetScore(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (rcb *RankingCreateBulk) OnConflict(opts ...sql.ConflictOption) *RankingUpsertBulk {
 	rcb.conflict = opts
 	return &RankingUpsertBulk{
@@ -696,7 +691,6 @@ func (rcb *RankingCreateBulk) OnConflict(opts ...sql.ConflictOption) *RankingUps
 //	client.Ranking.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (rcb *RankingCreateBulk) OnConflictColumns(columns ...string) *RankingUpsertBulk {
 	rcb.conflict = append(rcb.conflict, sql.ConflictColumns(columns...))
 	return &RankingUpsertBulk{
@@ -718,7 +712,6 @@ type RankingUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *RankingUpsertBulk) UpdateNewValues() *RankingUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -737,7 +730,6 @@ func (u *RankingUpsertBulk) UpdateNewValues() *RankingUpsertBulk {
 //	client.Ranking.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *RankingUpsertBulk) Ignore() *RankingUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
