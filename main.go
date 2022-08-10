@@ -23,8 +23,8 @@ func main() {
 		}
 		rankingEngine := apiV1.Group("/ranking")
 		{
-			rankingEngine.POST("/", controller.AddRanking)
-			rankingEngine.GET("/", controller.GetRanking)
+			rankingEngine.POST("", controller.AddRanking)
+			rankingEngine.GET("", controller.GetRanking)
 		}
 	}
 
