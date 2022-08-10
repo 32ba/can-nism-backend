@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // RankingUpdate is the builder for updating Ranking entities.
@@ -39,6 +40,12 @@ func (ru *RankingUpdate) SetScore(i int64) *RankingUpdate {
 // AddScore adds i to the "score" field.
 func (ru *RankingUpdate) AddScore(i int64) *RankingUpdate {
 	ru.mutation.AddScore(i)
+	return ru
+}
+
+// SetSongUUID sets the "song_uuid" field.
+func (ru *RankingUpdate) SetSongUUID(u uuid.UUID) *RankingUpdate {
+	ru.mutation.SetSongUUID(u)
 	return ru
 }
 
@@ -209,6 +216,13 @@ func (ru *RankingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: ranking.FieldScore,
 		})
 	}
+	if value, ok := ru.mutation.SongUUID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: ranking.FieldSongUUID,
+		})
+	}
 	if value, ok := ru.mutation.UpdatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -293,6 +307,12 @@ func (ruo *RankingUpdateOne) SetScore(i int64) *RankingUpdateOne {
 // AddScore adds i to the "score" field.
 func (ruo *RankingUpdateOne) AddScore(i int64) *RankingUpdateOne {
 	ruo.mutation.AddScore(i)
+	return ruo
+}
+
+// SetSongUUID sets the "song_uuid" field.
+func (ruo *RankingUpdateOne) SetSongUUID(u uuid.UUID) *RankingUpdateOne {
+	ruo.mutation.SetSongUUID(u)
 	return ruo
 }
 
@@ -491,6 +511,13 @@ func (ruo *RankingUpdateOne) sqlSave(ctx context.Context) (_node *Ranking, err e
 			Type:   field.TypeInt64,
 			Value:  value,
 			Column: ranking.FieldScore,
+		})
+	}
+	if value, ok := ruo.mutation.SongUUID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: ranking.FieldSongUUID,
 		})
 	}
 	if value, ok := ruo.mutation.UpdatedAt(); ok {

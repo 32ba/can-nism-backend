@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // Ranking is the model entity for the Ranking schema.
@@ -19,6 +20,8 @@ type Ranking struct {
 	ID int `json:"id,omitempty"`
 	// Score holds the value of the "score" field.
 	Score int64 `json:"score,omitempty"`
+	// SongUUID holds the value of the "song_uuid" field.
+	SongUUID uuid.UUID `json:"song_uuid,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -63,6 +66,8 @@ func (*Ranking) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case ranking.FieldCreatedAt, ranking.FieldUpdatedAt, ranking.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
+		case ranking.FieldSongUUID:
+			values[i] = new(uuid.UUID)
 		case ranking.ForeignKeys[0]: // user_record
 			values[i] = new(sql.NullInt64)
 		default:
@@ -91,6 +96,12 @@ func (r *Ranking) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field score", values[i])
 			} else if value.Valid {
 				r.Score = value.Int64
+			}
+		case ranking.FieldSongUUID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field song_uuid", values[i])
+			} else if value != nil {
+				r.SongUUID = *value
 			}
 		case ranking.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -152,6 +163,9 @@ func (r *Ranking) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", r.ID))
 	builder.WriteString("score=")
 	builder.WriteString(fmt.Sprintf("%v", r.Score))
+	builder.WriteString(", ")
+	builder.WriteString("song_uuid=")
+	builder.WriteString(fmt.Sprintf("%v", r.SongUUID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(r.CreatedAt.Format(time.ANSIC))

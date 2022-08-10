@@ -13,6 +13,8 @@ const (
 	FieldID = "id"
 	// FieldScore holds the string denoting the score field in the database.
 	FieldScore = "score"
+	// FieldSongUUID holds the string denoting the song_uuid field in the database.
+	FieldSongUUID = "song_uuid"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -36,6 +38,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldScore,
+	FieldSongUUID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,

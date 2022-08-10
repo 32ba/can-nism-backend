@@ -21,11 +21,11 @@ func init() {
 	// ranking.ScoreValidator is a validator for the "score" field. It is called by the builders before save.
 	ranking.ScoreValidator = rankingDescScore.Validators[0].(func(int64) error)
 	// rankingDescCreatedAt is the schema descriptor for created_at field.
-	rankingDescCreatedAt := rankingFields[1].Descriptor()
+	rankingDescCreatedAt := rankingFields[2].Descriptor()
 	// ranking.DefaultCreatedAt holds the default value on creation for the created_at field.
 	ranking.DefaultCreatedAt = rankingDescCreatedAt.Default.(func() time.Time)
 	// rankingDescUpdatedAt is the schema descriptor for updated_at field.
-	rankingDescUpdatedAt := rankingFields[2].Descriptor()
+	rankingDescUpdatedAt := rankingFields[3].Descriptor()
 	// ranking.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	ranking.DefaultUpdatedAt = rankingDescUpdatedAt.Default.(func() time.Time)
 	// ranking.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

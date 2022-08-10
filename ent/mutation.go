@@ -40,6 +40,7 @@ type RankingMutation struct {
 	id            *int
 	score         *int64
 	addscore      *int64
+	song_uuid     *uuid.UUID
 	created_at    *time.Time
 	updated_at    *time.Time
 	deleted_at    *time.Time
@@ -203,6 +204,42 @@ func (m *RankingMutation) AddedScore() (r int64, exists bool) {
 func (m *RankingMutation) ResetScore() {
 	m.score = nil
 	m.addscore = nil
+}
+
+// SetSongUUID sets the "song_uuid" field.
+func (m *RankingMutation) SetSongUUID(u uuid.UUID) {
+	m.song_uuid = &u
+}
+
+// SongUUID returns the value of the "song_uuid" field in the mutation.
+func (m *RankingMutation) SongUUID() (r uuid.UUID, exists bool) {
+	v := m.song_uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSongUUID returns the old "song_uuid" field's value of the Ranking entity.
+// If the Ranking object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RankingMutation) OldSongUUID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSongUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSongUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSongUUID: %w", err)
+	}
+	return oldValue.SongUUID, nil
+}
+
+// ResetSongUUID resets all changes to the "song_uuid" field.
+func (m *RankingMutation) ResetSongUUID() {
+	m.song_uuid = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -384,9 +421,12 @@ func (m *RankingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RankingMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.score != nil {
 		fields = append(fields, ranking.FieldScore)
+	}
+	if m.song_uuid != nil {
+		fields = append(fields, ranking.FieldSongUUID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, ranking.FieldCreatedAt)
@@ -407,6 +447,8 @@ func (m *RankingMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case ranking.FieldScore:
 		return m.Score()
+	case ranking.FieldSongUUID:
+		return m.SongUUID()
 	case ranking.FieldCreatedAt:
 		return m.CreatedAt()
 	case ranking.FieldUpdatedAt:
@@ -424,6 +466,8 @@ func (m *RankingMutation) OldField(ctx context.Context, name string) (ent.Value,
 	switch name {
 	case ranking.FieldScore:
 		return m.OldScore(ctx)
+	case ranking.FieldSongUUID:
+		return m.OldSongUUID(ctx)
 	case ranking.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case ranking.FieldUpdatedAt:
@@ -445,6 +489,13 @@ func (m *RankingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetScore(v)
+		return nil
+	case ranking.FieldSongUUID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSongUUID(v)
 		return nil
 	case ranking.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -542,6 +593,9 @@ func (m *RankingMutation) ResetField(name string) error {
 	switch name {
 	case ranking.FieldScore:
 		m.ResetScore()
+		return nil
+	case ranking.FieldSongUUID:
+		m.ResetSongUUID()
 		return nil
 	case ranking.FieldCreatedAt:
 		m.ResetCreatedAt()

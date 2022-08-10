@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // RankingCreate is the builder for creating a Ranking entity.
@@ -26,6 +27,12 @@ type RankingCreate struct {
 // SetScore sets the "score" field.
 func (rc *RankingCreate) SetScore(i int64) *RankingCreate {
 	rc.mutation.SetScore(i)
+	return rc
+}
+
+// SetSongUUID sets the "song_uuid" field.
+func (rc *RankingCreate) SetSongUUID(u uuid.UUID) *RankingCreate {
+	rc.mutation.SetSongUUID(u)
 	return rc
 }
 
@@ -187,6 +194,9 @@ func (rc *RankingCreate) check() error {
 			return &ValidationError{Name: "score", err: fmt.Errorf(`ent: validator failed for field "Ranking.score": %w`, err)}
 		}
 	}
+	if _, ok := rc.mutation.SongUUID(); !ok {
+		return &ValidationError{Name: "song_uuid", err: errors.New(`ent: missing required field "Ranking.song_uuid"`)}
+	}
 	if _, ok := rc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Ranking.created_at"`)}
 	}
@@ -228,6 +238,14 @@ func (rc *RankingCreate) createSpec() (*Ranking, *sqlgraph.CreateSpec) {
 			Column: ranking.FieldScore,
 		})
 		_node.Score = value
+	}
+	if value, ok := rc.mutation.SongUUID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: ranking.FieldSongUUID,
+		})
+		_node.SongUUID = value
 	}
 	if value, ok := rc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -345,6 +363,18 @@ func (u *RankingUpsert) AddScore(v int64) *RankingUpsert {
 	return u
 }
 
+// SetSongUUID sets the "song_uuid" field.
+func (u *RankingUpsert) SetSongUUID(v uuid.UUID) *RankingUpsert {
+	u.Set(ranking.FieldSongUUID, v)
+	return u
+}
+
+// UpdateSongUUID sets the "song_uuid" field to the value that was provided on create.
+func (u *RankingUpsert) UpdateSongUUID() *RankingUpsert {
+	u.SetExcluded(ranking.FieldSongUUID)
+	return u
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (u *RankingUpsert) SetCreatedAt(v time.Time) *RankingUpsert {
 	u.Set(ranking.FieldCreatedAt, v)
@@ -452,6 +482,20 @@ func (u *RankingUpsertOne) AddScore(v int64) *RankingUpsertOne {
 func (u *RankingUpsertOne) UpdateScore() *RankingUpsertOne {
 	return u.Update(func(s *RankingUpsert) {
 		s.UpdateScore()
+	})
+}
+
+// SetSongUUID sets the "song_uuid" field.
+func (u *RankingUpsertOne) SetSongUUID(v uuid.UUID) *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetSongUUID(v)
+	})
+}
+
+// UpdateSongUUID sets the "song_uuid" field to the value that was provided on create.
+func (u *RankingUpsertOne) UpdateSongUUID() *RankingUpsertOne {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateSongUUID()
 	})
 }
 
@@ -733,6 +777,20 @@ func (u *RankingUpsertBulk) AddScore(v int64) *RankingUpsertBulk {
 func (u *RankingUpsertBulk) UpdateScore() *RankingUpsertBulk {
 	return u.Update(func(s *RankingUpsert) {
 		s.UpdateScore()
+	})
+}
+
+// SetSongUUID sets the "song_uuid" field.
+func (u *RankingUpsertBulk) SetSongUUID(v uuid.UUID) *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.SetSongUUID(v)
+	})
+}
+
+// UpdateSongUUID sets the "song_uuid" field to the value that was provided on create.
+func (u *RankingUpsertBulk) UpdateSongUUID() *RankingUpsertBulk {
+	return u.Update(func(s *RankingUpsert) {
+		s.UpdateSongUUID()
 	})
 }
 

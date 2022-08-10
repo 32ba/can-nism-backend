@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
@@ -85,6 +86,13 @@ func IDLTE(id int) predicate.Ranking {
 func Score(v int64) predicate.Ranking {
 	return predicate.Ranking(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldScore), v))
+	})
+}
+
+// SongUUID applies equality check predicate on the "song_uuid" field. It's identical to SongUUIDEQ.
+func SongUUID(v uuid.UUID) predicate.Ranking {
+	return predicate.Ranking(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSongUUID), v))
 	})
 }
 
@@ -182,6 +190,82 @@ func ScoreLT(v int64) predicate.Ranking {
 func ScoreLTE(v int64) predicate.Ranking {
 	return predicate.Ranking(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldScore), v))
+	})
+}
+
+// SongUUIDEQ applies the EQ predicate on the "song_uuid" field.
+func SongUUIDEQ(v uuid.UUID) predicate.Ranking {
+	return predicate.Ranking(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSongUUID), v))
+	})
+}
+
+// SongUUIDNEQ applies the NEQ predicate on the "song_uuid" field.
+func SongUUIDNEQ(v uuid.UUID) predicate.Ranking {
+	return predicate.Ranking(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldSongUUID), v))
+	})
+}
+
+// SongUUIDIn applies the In predicate on the "song_uuid" field.
+func SongUUIDIn(vs ...uuid.UUID) predicate.Ranking {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Ranking(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldSongUUID), v...))
+	})
+}
+
+// SongUUIDNotIn applies the NotIn predicate on the "song_uuid" field.
+func SongUUIDNotIn(vs ...uuid.UUID) predicate.Ranking {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Ranking(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldSongUUID), v...))
+	})
+}
+
+// SongUUIDGT applies the GT predicate on the "song_uuid" field.
+func SongUUIDGT(v uuid.UUID) predicate.Ranking {
+	return predicate.Ranking(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldSongUUID), v))
+	})
+}
+
+// SongUUIDGTE applies the GTE predicate on the "song_uuid" field.
+func SongUUIDGTE(v uuid.UUID) predicate.Ranking {
+	return predicate.Ranking(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldSongUUID), v))
+	})
+}
+
+// SongUUIDLT applies the LT predicate on the "song_uuid" field.
+func SongUUIDLT(v uuid.UUID) predicate.Ranking {
+	return predicate.Ranking(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldSongUUID), v))
+	})
+}
+
+// SongUUIDLTE applies the LTE predicate on the "song_uuid" field.
+func SongUUIDLTE(v uuid.UUID) predicate.Ranking {
+	return predicate.Ranking(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldSongUUID), v))
 	})
 }
 
