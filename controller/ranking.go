@@ -45,3 +45,7 @@ func AddRanking(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": "OK"})
 }
+
+func GetRanking(c *gin.Context) {
+	
+}
