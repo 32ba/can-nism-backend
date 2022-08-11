@@ -41,12 +41,6 @@ func (su *SongUpdate) SetTitle(s string) *SongUpdate {
 	return su
 }
 
-// SetHash sets the "hash" field.
-func (su *SongUpdate) SetHash(s string) *SongUpdate {
-	su.mutation.SetHash(s)
-	return su
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (su *SongUpdate) SetCreatedAt(t time.Time) *SongUpdate {
 	su.mutation.SetCreatedAt(t)
@@ -187,13 +181,6 @@ func (su *SongUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: song.FieldTitle,
 		})
 	}
-	if value, ok := su.mutation.Hash(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: song.FieldHash,
-		})
-	}
 	if value, ok := su.mutation.CreatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -249,12 +236,6 @@ func (suo *SongUpdateOne) SetUUID(u uuid.UUID) *SongUpdateOne {
 // SetTitle sets the "title" field.
 func (suo *SongUpdateOne) SetTitle(s string) *SongUpdateOne {
 	suo.mutation.SetTitle(s)
-	return suo
-}
-
-// SetHash sets the "hash" field.
-func (suo *SongUpdateOne) SetHash(s string) *SongUpdateOne {
-	suo.mutation.SetHash(s)
 	return suo
 }
 
@@ -426,13 +407,6 @@ func (suo *SongUpdateOne) sqlSave(ctx context.Context) (_node *Song, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: song.FieldTitle,
-		})
-	}
-	if value, ok := suo.mutation.Hash(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: song.FieldHash,
 		})
 	}
 	if value, ok := suo.mutation.CreatedAt(); ok {

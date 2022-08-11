@@ -696,7 +696,6 @@ type SongMutation struct {
 	id            *int
 	uuid          *uuid.UUID
 	title         *string
-	hash          *string
 	created_at    *time.Time
 	updated_at    *time.Time
 	deleted_at    *time.Time
@@ -876,42 +875,6 @@ func (m *SongMutation) ResetTitle() {
 	m.title = nil
 }
 
-// SetHash sets the "hash" field.
-func (m *SongMutation) SetHash(s string) {
-	m.hash = &s
-}
-
-// Hash returns the value of the "hash" field in the mutation.
-func (m *SongMutation) Hash() (r string, exists bool) {
-	v := m.hash
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHash returns the old "hash" field's value of the Song entity.
-// If the Song object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SongMutation) OldHash(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHash is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHash requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHash: %w", err)
-	}
-	return oldValue.Hash, nil
-}
-
-// ResetHash resets all changes to the "hash" field.
-func (m *SongMutation) ResetHash() {
-	m.hash = nil
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (m *SongMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -1052,15 +1015,12 @@ func (m *SongMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SongMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.uuid != nil {
 		fields = append(fields, song.FieldUUID)
 	}
 	if m.title != nil {
 		fields = append(fields, song.FieldTitle)
-	}
-	if m.hash != nil {
-		fields = append(fields, song.FieldHash)
 	}
 	if m.created_at != nil {
 		fields = append(fields, song.FieldCreatedAt)
@@ -1083,8 +1043,6 @@ func (m *SongMutation) Field(name string) (ent.Value, bool) {
 		return m.UUID()
 	case song.FieldTitle:
 		return m.Title()
-	case song.FieldHash:
-		return m.Hash()
 	case song.FieldCreatedAt:
 		return m.CreatedAt()
 	case song.FieldUpdatedAt:
@@ -1104,8 +1062,6 @@ func (m *SongMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUUID(ctx)
 	case song.FieldTitle:
 		return m.OldTitle(ctx)
-	case song.FieldHash:
-		return m.OldHash(ctx)
 	case song.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case song.FieldUpdatedAt:
@@ -1134,13 +1090,6 @@ func (m *SongMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTitle(v)
-		return nil
-	case song.FieldHash:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHash(v)
 		return nil
 	case song.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1226,9 +1175,6 @@ func (m *SongMutation) ResetField(name string) error {
 		return nil
 	case song.FieldTitle:
 		m.ResetTitle()
-		return nil
-	case song.FieldHash:
-		m.ResetHash()
 		return nil
 	case song.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -35,12 +35,6 @@ func (sc *SongCreate) SetTitle(s string) *SongCreate {
 	return sc
 }
 
-// SetHash sets the "hash" field.
-func (sc *SongCreate) SetHash(s string) *SongCreate {
-	sc.mutation.SetHash(s)
-	return sc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (sc *SongCreate) SetCreatedAt(t time.Time) *SongCreate {
 	sc.mutation.SetCreatedAt(t)
@@ -178,9 +172,6 @@ func (sc *SongCreate) check() error {
 	if _, ok := sc.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Song.title"`)}
 	}
-	if _, ok := sc.mutation.Hash(); !ok {
-		return &ValidationError{Name: "hash", err: errors.New(`ent: missing required field "Song.hash"`)}
-	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Song.created_at"`)}
 	}
@@ -230,14 +221,6 @@ func (sc *SongCreate) createSpec() (*Song, *sqlgraph.CreateSpec) {
 			Column: song.FieldTitle,
 		})
 		_node.Title = value
-	}
-	if value, ok := sc.mutation.Hash(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: song.FieldHash,
-		})
-		_node.Hash = value
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -336,18 +319,6 @@ func (u *SongUpsert) SetTitle(v string) *SongUpsert {
 // UpdateTitle sets the "title" field to the value that was provided on create.
 func (u *SongUpsert) UpdateTitle() *SongUpsert {
 	u.SetExcluded(song.FieldTitle)
-	return u
-}
-
-// SetHash sets the "hash" field.
-func (u *SongUpsert) SetHash(v string) *SongUpsert {
-	u.Set(song.FieldHash, v)
-	return u
-}
-
-// UpdateHash sets the "hash" field to the value that was provided on create.
-func (u *SongUpsert) UpdateHash() *SongUpsert {
-	u.SetExcluded(song.FieldHash)
 	return u
 }
 
@@ -458,20 +429,6 @@ func (u *SongUpsertOne) SetTitle(v string) *SongUpsertOne {
 func (u *SongUpsertOne) UpdateTitle() *SongUpsertOne {
 	return u.Update(func(s *SongUpsert) {
 		s.UpdateTitle()
-	})
-}
-
-// SetHash sets the "hash" field.
-func (u *SongUpsertOne) SetHash(v string) *SongUpsertOne {
-	return u.Update(func(s *SongUpsert) {
-		s.SetHash(v)
-	})
-}
-
-// UpdateHash sets the "hash" field to the value that was provided on create.
-func (u *SongUpsertOne) UpdateHash() *SongUpsertOne {
-	return u.Update(func(s *SongUpsert) {
-		s.UpdateHash()
 	})
 }
 
@@ -749,20 +706,6 @@ func (u *SongUpsertBulk) SetTitle(v string) *SongUpsertBulk {
 func (u *SongUpsertBulk) UpdateTitle() *SongUpsertBulk {
 	return u.Update(func(s *SongUpsert) {
 		s.UpdateTitle()
-	})
-}
-
-// SetHash sets the "hash" field.
-func (u *SongUpsertBulk) SetHash(v string) *SongUpsertBulk {
-	return u.Update(func(s *SongUpsert) {
-		s.SetHash(v)
-	})
-}
-
-// UpdateHash sets the "hash" field to the value that was provided on create.
-func (u *SongUpsertBulk) UpdateHash() *SongUpsertBulk {
-	return u.Update(func(s *SongUpsert) {
-		s.UpdateHash()
 	})
 }
 

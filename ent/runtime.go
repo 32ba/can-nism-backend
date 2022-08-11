@@ -34,11 +34,11 @@ func init() {
 	songFields := schema.Song{}.Fields()
 	_ = songFields
 	// songDescCreatedAt is the schema descriptor for created_at field.
-	songDescCreatedAt := songFields[3].Descriptor()
+	songDescCreatedAt := songFields[2].Descriptor()
 	// song.DefaultCreatedAt holds the default value on creation for the created_at field.
 	song.DefaultCreatedAt = songDescCreatedAt.Default.(func() time.Time)
 	// songDescUpdatedAt is the schema descriptor for updated_at field.
-	songDescUpdatedAt := songFields[4].Descriptor()
+	songDescUpdatedAt := songFields[3].Descriptor()
 	// song.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	song.DefaultUpdatedAt = songDescUpdatedAt.Default.(func() time.Time)
 	// song.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

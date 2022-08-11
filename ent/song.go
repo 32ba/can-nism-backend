@@ -21,8 +21,6 @@ type Song struct {
 	UUID uuid.UUID `json:"uuid,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
-	// Hash holds the value of the "hash" field.
-	Hash string `json:"hash,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -38,7 +36,7 @@ func (*Song) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case song.FieldID:
 			values[i] = new(sql.NullInt64)
-		case song.FieldTitle, song.FieldHash:
+		case song.FieldTitle:
 			values[i] = new(sql.NullString)
 		case song.FieldCreatedAt, song.FieldUpdatedAt, song.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -76,12 +74,6 @@ func (s *Song) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
 			} else if value.Valid {
 				s.Title = value.String
-			}
-		case song.FieldHash:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field hash", values[i])
-			} else if value.Valid {
-				s.Hash = value.String
 			}
 		case song.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -134,9 +126,6 @@ func (s *Song) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(s.Title)
-	builder.WriteString(", ")
-	builder.WriteString("hash=")
-	builder.WriteString(s.Hash)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(s.CreatedAt.Format(time.ANSIC))
