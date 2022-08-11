@@ -77,7 +77,7 @@ func (rq *RankingQuery) QueryUser() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(ranking.Table, ranking.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, ranking.UserTable, ranking.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ranking.UserTable, ranking.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil

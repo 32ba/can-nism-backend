@@ -16,7 +16,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "user_record", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "user_record", Type: field.TypeInt},
 	}
 	// RankingsTable holds the schema information for the "rankings" table.
 	RankingsTable = &schema.Table{
@@ -28,9 +28,25 @@ var (
 				Symbol:     "rankings_users_record",
 				Columns:    []*schema.Column{RankingsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 		},
+	}
+	// SongsColumns holds the columns for the "songs" table.
+	SongsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "uuid", Type: field.TypeUUID},
+		{Name: "title", Type: field.TypeString},
+		{Name: "hash", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// SongsTable holds the schema information for the "songs" table.
+	SongsTable = &schema.Table{
+		Name:       "songs",
+		Columns:    SongsColumns,
+		PrimaryKey: []*schema.Column{SongsColumns[0]},
 	}
 	// TokensColumns holds the columns for the "tokens" table.
 	TokensColumns = []*schema.Column{
@@ -76,6 +92,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		RankingsTable,
+		SongsTable,
 		TokensTable,
 		UsersTable,
 	}

@@ -28,7 +28,7 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("record", Ranking.Type).Unique(),
+		edge.To("record", Ranking.Type),
 		edge.To("token", Token.Type).Unique(),
 	}
 }

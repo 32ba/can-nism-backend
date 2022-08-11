@@ -26,6 +26,10 @@ func main() {
 			rankingEngine.POST("", controller.AddRanking)
 			rankingEngine.GET("", controller.GetRanking)
 		}
+		songEngine := apiV1.Group("/song")
+		{
+			songEngine.GET("/list", controller.GetSongList)
+		}
 	}
 
 	engine.Run(":8080")

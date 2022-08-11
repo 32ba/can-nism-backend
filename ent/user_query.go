@@ -79,7 +79,7 @@ func (uq *UserQuery) QueryRecord() *RankingQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(ranking.Table, ranking.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, user.RecordTable, user.RecordColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RecordTable, user.RecordColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -419,6 +419,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Record = []*Ranking{}
 		}
 		query.withFKs = true
 		query.Where(predicate.Ranking(func(s *sql.Selector) {
@@ -437,7 +438,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			if !ok {
 				return nil, fmt.Errorf(`unexpected foreign-key "user_record" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.Record = n
+			node.Edges.Record = append(node.Edges.Record, n)
 		}
 	}
 

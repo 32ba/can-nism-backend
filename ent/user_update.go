@@ -69,23 +69,19 @@ func (uu *UserUpdate) ClearDeletedAt() *UserUpdate {
 	return uu
 }
 
-// SetRecordID sets the "record" edge to the Ranking entity by ID.
-func (uu *UserUpdate) SetRecordID(id int) *UserUpdate {
-	uu.mutation.SetRecordID(id)
+// AddRecordIDs adds the "record" edge to the Ranking entity by IDs.
+func (uu *UserUpdate) AddRecordIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddRecordIDs(ids...)
 	return uu
 }
 
-// SetNillableRecordID sets the "record" edge to the Ranking entity by ID if the given value is not nil.
-func (uu *UserUpdate) SetNillableRecordID(id *int) *UserUpdate {
-	if id != nil {
-		uu = uu.SetRecordID(*id)
+// AddRecord adds the "record" edges to the Ranking entity.
+func (uu *UserUpdate) AddRecord(r ...*Ranking) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uu
-}
-
-// SetRecord sets the "record" edge to the Ranking entity.
-func (uu *UserUpdate) SetRecord(r *Ranking) *UserUpdate {
-	return uu.SetRecordID(r.ID)
+	return uu.AddRecordIDs(ids...)
 }
 
 // SetTokenID sets the "token" edge to the Token entity by ID.
@@ -112,10 +108,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearRecord clears the "record" edge to the Ranking entity.
+// ClearRecord clears all "record" edges to the Ranking entity.
 func (uu *UserUpdate) ClearRecord() *UserUpdate {
 	uu.mutation.ClearRecord()
 	return uu
+}
+
+// RemoveRecordIDs removes the "record" edge to Ranking entities by IDs.
+func (uu *UserUpdate) RemoveRecordIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveRecordIDs(ids...)
+	return uu
+}
+
+// RemoveRecord removes "record" edges to Ranking entities.
+func (uu *UserUpdate) RemoveRecord(r ...*Ranking) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.RemoveRecordIDs(ids...)
 }
 
 // ClearToken clears the "token" edge to the Token entity.
@@ -257,7 +268,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.RecordCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.RecordTable,
 			Columns: []string{user.RecordColumn},
@@ -271,9 +282,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := uu.mutation.RemovedRecordIDs(); len(nodes) > 0 && !uu.mutation.RecordCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RecordTable,
+			Columns: []string{user.RecordColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ranking.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := uu.mutation.RecordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.RecordTable,
 			Columns: []string{user.RecordColumn},
@@ -382,23 +412,19 @@ func (uuo *UserUpdateOne) ClearDeletedAt() *UserUpdateOne {
 	return uuo
 }
 
-// SetRecordID sets the "record" edge to the Ranking entity by ID.
-func (uuo *UserUpdateOne) SetRecordID(id int) *UserUpdateOne {
-	uuo.mutation.SetRecordID(id)
+// AddRecordIDs adds the "record" edge to the Ranking entity by IDs.
+func (uuo *UserUpdateOne) AddRecordIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddRecordIDs(ids...)
 	return uuo
 }
 
-// SetNillableRecordID sets the "record" edge to the Ranking entity by ID if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableRecordID(id *int) *UserUpdateOne {
-	if id != nil {
-		uuo = uuo.SetRecordID(*id)
+// AddRecord adds the "record" edges to the Ranking entity.
+func (uuo *UserUpdateOne) AddRecord(r ...*Ranking) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uuo
-}
-
-// SetRecord sets the "record" edge to the Ranking entity.
-func (uuo *UserUpdateOne) SetRecord(r *Ranking) *UserUpdateOne {
-	return uuo.SetRecordID(r.ID)
+	return uuo.AddRecordIDs(ids...)
 }
 
 // SetTokenID sets the "token" edge to the Token entity by ID.
@@ -425,10 +451,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearRecord clears the "record" edge to the Ranking entity.
+// ClearRecord clears all "record" edges to the Ranking entity.
 func (uuo *UserUpdateOne) ClearRecord() *UserUpdateOne {
 	uuo.mutation.ClearRecord()
 	return uuo
+}
+
+// RemoveRecordIDs removes the "record" edge to Ranking entities by IDs.
+func (uuo *UserUpdateOne) RemoveRecordIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveRecordIDs(ids...)
+	return uuo
+}
+
+// RemoveRecord removes "record" edges to Ranking entities.
+func (uuo *UserUpdateOne) RemoveRecord(r ...*Ranking) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.RemoveRecordIDs(ids...)
 }
 
 // ClearToken clears the "token" edge to the Token entity.
@@ -600,7 +641,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.RecordCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.RecordTable,
 			Columns: []string{user.RecordColumn},
@@ -614,9 +655,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := uuo.mutation.RemovedRecordIDs(); len(nodes) > 0 && !uuo.mutation.RecordCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RecordTable,
+			Columns: []string{user.RecordColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: ranking.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := uuo.mutation.RecordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.RecordTable,
 			Columns: []string{user.RecordColumn},

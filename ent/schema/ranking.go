@@ -28,6 +28,6 @@ func (Ranking) Fields() []ent.Field {
 // Edges of the Ranking.
 func (Ranking) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).Ref("record").Unique(),
+		edge.From("user", User.Type).Ref("record").Required().Unique(),
 	}
 }

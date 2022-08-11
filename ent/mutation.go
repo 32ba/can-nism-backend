@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"go-ranking-api/ent/predicate"
 	"go-ranking-api/ent/ranking"
+	"go-ranking-api/ent/song"
 	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 	"sync"
@@ -28,6 +29,7 @@ const (
 
 	// Node types.
 	TypeRanking = "Ranking"
+	TypeSong    = "Song"
 	TypeToken   = "Token"
 	TypeUser    = "User"
 )
@@ -684,6 +686,609 @@ func (m *RankingMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Ranking edge %s", name)
+}
+
+// SongMutation represents an operation that mutates the Song nodes in the graph.
+type SongMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	uuid          *uuid.UUID
+	title         *string
+	hash          *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	deleted_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Song, error)
+	predicates    []predicate.Song
+}
+
+var _ ent.Mutation = (*SongMutation)(nil)
+
+// songOption allows management of the mutation configuration using functional options.
+type songOption func(*SongMutation)
+
+// newSongMutation creates new mutation for the Song entity.
+func newSongMutation(c config, op Op, opts ...songOption) *SongMutation {
+	m := &SongMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSong,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSongID sets the ID field of the mutation.
+func withSongID(id int) songOption {
+	return func(m *SongMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Song
+		)
+		m.oldValue = func(ctx context.Context) (*Song, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Song.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSong sets the old Song of the mutation.
+func withSong(node *Song) songOption {
+	return func(m *SongMutation) {
+		m.oldValue = func(context.Context) (*Song, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SongMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SongMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SongMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SongMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Song.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUUID sets the "uuid" field.
+func (m *SongMutation) SetUUID(u uuid.UUID) {
+	m.uuid = &u
+}
+
+// UUID returns the value of the "uuid" field in the mutation.
+func (m *SongMutation) UUID() (r uuid.UUID, exists bool) {
+	v := m.uuid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUUID returns the old "uuid" field's value of the Song entity.
+// If the Song object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SongMutation) OldUUID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUUID: %w", err)
+	}
+	return oldValue.UUID, nil
+}
+
+// ResetUUID resets all changes to the "uuid" field.
+func (m *SongMutation) ResetUUID() {
+	m.uuid = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *SongMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *SongMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the Song entity.
+// If the Song object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SongMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *SongMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetHash sets the "hash" field.
+func (m *SongMutation) SetHash(s string) {
+	m.hash = &s
+}
+
+// Hash returns the value of the "hash" field in the mutation.
+func (m *SongMutation) Hash() (r string, exists bool) {
+	v := m.hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHash returns the old "hash" field's value of the Song entity.
+// If the Song object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SongMutation) OldHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHash: %w", err)
+	}
+	return oldValue.Hash, nil
+}
+
+// ResetHash resets all changes to the "hash" field.
+func (m *SongMutation) ResetHash() {
+	m.hash = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SongMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SongMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Song entity.
+// If the Song object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SongMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SongMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SongMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SongMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Song entity.
+// If the Song object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SongMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SongMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *SongMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *SongMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the Song entity.
+// If the Song object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SongMutation) OldDeletedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *SongMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[song.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *SongMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[song.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *SongMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, song.FieldDeletedAt)
+}
+
+// Where appends a list predicates to the SongMutation builder.
+func (m *SongMutation) Where(ps ...predicate.Song) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *SongMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Song).
+func (m *SongMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SongMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.uuid != nil {
+		fields = append(fields, song.FieldUUID)
+	}
+	if m.title != nil {
+		fields = append(fields, song.FieldTitle)
+	}
+	if m.hash != nil {
+		fields = append(fields, song.FieldHash)
+	}
+	if m.created_at != nil {
+		fields = append(fields, song.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, song.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, song.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SongMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case song.FieldUUID:
+		return m.UUID()
+	case song.FieldTitle:
+		return m.Title()
+	case song.FieldHash:
+		return m.Hash()
+	case song.FieldCreatedAt:
+		return m.CreatedAt()
+	case song.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case song.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SongMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case song.FieldUUID:
+		return m.OldUUID(ctx)
+	case song.FieldTitle:
+		return m.OldTitle(ctx)
+	case song.FieldHash:
+		return m.OldHash(ctx)
+	case song.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case song.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case song.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Song field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SongMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case song.FieldUUID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUUID(v)
+		return nil
+	case song.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case song.FieldHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHash(v)
+		return nil
+	case song.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case song.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case song.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Song field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SongMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SongMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SongMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Song numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SongMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(song.FieldDeletedAt) {
+		fields = append(fields, song.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SongMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SongMutation) ClearField(name string) error {
+	switch name {
+	case song.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Song nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SongMutation) ResetField(name string) error {
+	switch name {
+	case song.FieldUUID:
+		m.ResetUUID()
+		return nil
+	case song.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case song.FieldHash:
+		m.ResetHash()
+		return nil
+	case song.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case song.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case song.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Song field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SongMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SongMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SongMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SongMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SongMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SongMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SongMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Song unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SongMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Song edge %s", name)
 }
 
 // TokenMutation represents an operation that mutates the Token nodes in the graph.
@@ -1424,7 +2029,8 @@ type UserMutation struct {
 	updated_at    *time.Time
 	deleted_at    *time.Time
 	clearedFields map[string]struct{}
-	record        *int
+	record        map[int]struct{}
+	removedrecord map[int]struct{}
 	clearedrecord bool
 	token         *int
 	clearedtoken  bool
@@ -1724,9 +2330,14 @@ func (m *UserMutation) ResetDeletedAt() {
 	delete(m.clearedFields, user.FieldDeletedAt)
 }
 
-// SetRecordID sets the "record" edge to the Ranking entity by id.
-func (m *UserMutation) SetRecordID(id int) {
-	m.record = &id
+// AddRecordIDs adds the "record" edge to the Ranking entity by ids.
+func (m *UserMutation) AddRecordIDs(ids ...int) {
+	if m.record == nil {
+		m.record = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.record[ids[i]] = struct{}{}
+	}
 }
 
 // ClearRecord clears the "record" edge to the Ranking entity.
@@ -1739,20 +2350,29 @@ func (m *UserMutation) RecordCleared() bool {
 	return m.clearedrecord
 }
 
-// RecordID returns the "record" edge ID in the mutation.
-func (m *UserMutation) RecordID() (id int, exists bool) {
-	if m.record != nil {
-		return *m.record, true
+// RemoveRecordIDs removes the "record" edge to the Ranking entity by IDs.
+func (m *UserMutation) RemoveRecordIDs(ids ...int) {
+	if m.removedrecord == nil {
+		m.removedrecord = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.record, ids[i])
+		m.removedrecord[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRecord returns the removed IDs of the "record" edge to the Ranking entity.
+func (m *UserMutation) RemovedRecordIDs() (ids []int) {
+	for id := range m.removedrecord {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // RecordIDs returns the "record" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// RecordID instead. It exists only for internal usage by the builders.
 func (m *UserMutation) RecordIDs() (ids []int) {
-	if id := m.record; id != nil {
-		ids = append(ids, *id)
+	for id := range m.record {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -1761,6 +2381,7 @@ func (m *UserMutation) RecordIDs() (ids []int) {
 func (m *UserMutation) ResetRecord() {
 	m.record = nil
 	m.clearedrecord = false
+	m.removedrecord = nil
 }
 
 // SetTokenID sets the "token" edge to the Token entity by id.
@@ -2012,9 +2633,11 @@ func (m *UserMutation) AddedEdges() []string {
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case user.EdgeRecord:
-		if id := m.record; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m.record))
+		for id := range m.record {
+			ids = append(ids, id)
 		}
+		return ids
 	case user.EdgeToken:
 		if id := m.token; id != nil {
 			return []ent.Value{*id}
@@ -2026,6 +2649,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
+	if m.removedrecord != nil {
+		edges = append(edges, user.EdgeRecord)
+	}
 	return edges
 }
 
@@ -2033,6 +2659,12 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case user.EdgeRecord:
+		ids := make([]ent.Value, 0, len(m.removedrecord))
+		for id := range m.removedrecord {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -2065,9 +2697,6 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
-	case user.EdgeRecord:
-		m.ClearRecord()
-		return nil
 	case user.EdgeToken:
 		m.ClearToken()
 		return nil

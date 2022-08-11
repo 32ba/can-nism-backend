@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Ranking is the client for interacting with the Ranking builders.
 	Ranking *RankingClient
+	// Song is the client for interacting with the Song builders.
+	Song *SongClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
 	// User is the client for interacting with the User builders.
@@ -154,6 +156,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Ranking = NewRankingClient(tx.config)
+	tx.Song = NewSongClient(tx.config)
 	tx.Token = NewTokenClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

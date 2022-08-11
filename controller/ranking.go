@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"go-ranking-api/ent"
 	"go-ranking-api/ent/ranking"
+	"go-ranking-api/ent/user"
 	"go-ranking-api/model"
 	"go-ranking-api/repository"
 	"go-ranking-api/utils"
@@ -42,22 +44,51 @@ func AddRanking(c *gin.Context) {
 		return
 	}
 
-	user, err := utils.GetUserFromTokenID(tokenID)
+	u, err := utils.GetUserFromTokenID(tokenID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	isFoundRecord, err := model.DBClient.Ranking.
+		Query().
+		Where(
+			ranking.And(
+				ranking.SongUUIDEQ(addRankingRequest.SongUUID),
+				ranking.HasUserWith(user.ID(u.ID)),
+			),
+		).
+		Exist(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = model.DBClient.Ranking.Create().
-		SetScore(addRankingRequest.Score).
-		SetSongUUID(addRankingRequest.SongUUID).
-		SetUser(user).
-		OnConflict().
-		UpdateScore().
-		Exec(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if isFoundRecord {
+		err := model.DBClient.Ranking.
+			Update().
+			Where(
+				ranking.And(
+					ranking.SongUUIDEQ(addRankingRequest.SongUUID),
+					ranking.HasUserWith(user.ID(u.ID)),
+				),
+			).
+			SetScore(addRankingRequest.Score).
+			Exec(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}else{
+		err := model.DBClient.Ranking.
+			Create().
+			SetScore(addRankingRequest.Score).
+			SetSongUUID(addRankingRequest.SongUUID).
+			SetUser(u).
+			Exec(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "OK"})
@@ -89,6 +120,7 @@ func GetRanking(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println(ranking)
 	var r []repository.Ranking
 	for i, e := range ranking {
 		var elem repository.Ranking

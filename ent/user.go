@@ -4,7 +4,6 @@ package ent
 
 import (
 	"fmt"
-	"go-ranking-api/ent/ranking"
 	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 	"strings"
@@ -37,7 +36,7 @@ type User struct {
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
 	// Record holds the value of the record edge.
-	Record *Ranking `json:"record,omitempty"`
+	Record []*Ranking `json:"record,omitempty"`
 	// Token holds the value of the token edge.
 	Token *Token `json:"token,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -46,14 +45,9 @@ type UserEdges struct {
 }
 
 // RecordOrErr returns the Record value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) RecordOrErr() (*Ranking, error) {
+// was not loaded in eager-loading.
+func (e UserEdges) RecordOrErr() ([]*Ranking, error) {
 	if e.loadedTypes[0] {
-		if e.Record == nil {
-			// The edge record was loaded in eager-loading,
-			// but was not found.
-			return nil, &NotFoundError{label: ranking.Label}
-		}
 		return e.Record, nil
 	}
 	return nil, &NotLoadedError{edge: "record"}

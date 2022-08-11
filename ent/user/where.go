@@ -552,7 +552,7 @@ func HasRecord() predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(RecordTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, RecordTable, RecordColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, RecordTable, RecordColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -564,7 +564,7 @@ func HasRecordWith(preds ...predicate.Ranking) predicate.User {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(RecordInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, RecordTable, RecordColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, RecordTable, RecordColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

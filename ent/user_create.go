@@ -79,23 +79,19 @@ func (uc *UserCreate) SetNillableDeletedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
-// SetRecordID sets the "record" edge to the Ranking entity by ID.
-func (uc *UserCreate) SetRecordID(id int) *UserCreate {
-	uc.mutation.SetRecordID(id)
+// AddRecordIDs adds the "record" edge to the Ranking entity by IDs.
+func (uc *UserCreate) AddRecordIDs(ids ...int) *UserCreate {
+	uc.mutation.AddRecordIDs(ids...)
 	return uc
 }
 
-// SetNillableRecordID sets the "record" edge to the Ranking entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableRecordID(id *int) *UserCreate {
-	if id != nil {
-		uc = uc.SetRecordID(*id)
+// AddRecord adds the "record" edges to the Ranking entity.
+func (uc *UserCreate) AddRecord(r ...*Ranking) *UserCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uc
-}
-
-// SetRecord sets the "record" edge to the Ranking entity.
-func (uc *UserCreate) SetRecord(r *Ranking) *UserCreate {
-	return uc.SetRecordID(r.ID)
+	return uc.AddRecordIDs(ids...)
 }
 
 // SetTokenID sets the "token" edge to the Token entity by ID.
@@ -293,7 +289,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if nodes := uc.mutation.RecordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   user.RecordTable,
 			Columns: []string{user.RecordColumn},

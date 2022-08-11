@@ -21,6 +21,19 @@ func (f RankingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return f(ctx, mv)
 }
 
+// The SongFunc type is an adapter to allow the use of ordinary
+// function as Song mutator.
+type SongFunc func(context.Context, *ent.SongMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SongFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SongMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SongMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The TokenFunc type is an adapter to allow the use of ordinary
 // function as Token mutator.
 type TokenFunc func(context.Context, *ent.TokenMutation) (ent.Value, error)

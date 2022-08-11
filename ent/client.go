@@ -10,6 +10,7 @@ import (
 	"go-ranking-api/ent/migrate"
 
 	"go-ranking-api/ent/ranking"
+	"go-ranking-api/ent/song"
 	"go-ranking-api/ent/token"
 	"go-ranking-api/ent/user"
 
@@ -25,6 +26,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Ranking is the client for interacting with the Ranking builders.
 	Ranking *RankingClient
+	// Song is the client for interacting with the Song builders.
+	Song *SongClient
 	// Token is the client for interacting with the Token builders.
 	Token *TokenClient
 	// User is the client for interacting with the User builders.
@@ -43,6 +46,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Ranking = NewRankingClient(c.config)
+	c.Song = NewSongClient(c.config)
 	c.Token = NewTokenClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -79,6 +83,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:     ctx,
 		config:  cfg,
 		Ranking: NewRankingClient(cfg),
+		Song:    NewSongClient(cfg),
 		Token:   NewTokenClient(cfg),
 		User:    NewUserClient(cfg),
 	}, nil
@@ -101,6 +106,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:     ctx,
 		config:  cfg,
 		Ranking: NewRankingClient(cfg),
+		Song:    NewSongClient(cfg),
 		Token:   NewTokenClient(cfg),
 		User:    NewUserClient(cfg),
 	}, nil
@@ -132,6 +138,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Ranking.Use(hooks...)
+	c.Song.Use(hooks...)
 	c.Token.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -229,7 +236,7 @@ func (c *RankingClient) QueryUser(r *Ranking) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(ranking.Table, ranking.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, ranking.UserTable, ranking.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ranking.UserTable, ranking.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil
@@ -240,6 +247,96 @@ func (c *RankingClient) QueryUser(r *Ranking) *UserQuery {
 // Hooks returns the client hooks.
 func (c *RankingClient) Hooks() []Hook {
 	return c.hooks.Ranking
+}
+
+// SongClient is a client for the Song schema.
+type SongClient struct {
+	config
+}
+
+// NewSongClient returns a client for the Song from the given config.
+func NewSongClient(c config) *SongClient {
+	return &SongClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `song.Hooks(f(g(h())))`.
+func (c *SongClient) Use(hooks ...Hook) {
+	c.hooks.Song = append(c.hooks.Song, hooks...)
+}
+
+// Create returns a builder for creating a Song entity.
+func (c *SongClient) Create() *SongCreate {
+	mutation := newSongMutation(c.config, OpCreate)
+	return &SongCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Song entities.
+func (c *SongClient) CreateBulk(builders ...*SongCreate) *SongCreateBulk {
+	return &SongCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Song.
+func (c *SongClient) Update() *SongUpdate {
+	mutation := newSongMutation(c.config, OpUpdate)
+	return &SongUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SongClient) UpdateOne(s *Song) *SongUpdateOne {
+	mutation := newSongMutation(c.config, OpUpdateOne, withSong(s))
+	return &SongUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SongClient) UpdateOneID(id int) *SongUpdateOne {
+	mutation := newSongMutation(c.config, OpUpdateOne, withSongID(id))
+	return &SongUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Song.
+func (c *SongClient) Delete() *SongDelete {
+	mutation := newSongMutation(c.config, OpDelete)
+	return &SongDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SongClient) DeleteOne(s *Song) *SongDeleteOne {
+	return c.DeleteOneID(s.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *SongClient) DeleteOneID(id int) *SongDeleteOne {
+	builder := c.Delete().Where(song.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SongDeleteOne{builder}
+}
+
+// Query returns a query builder for Song.
+func (c *SongClient) Query() *SongQuery {
+	return &SongQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Song entity by its id.
+func (c *SongClient) Get(ctx context.Context, id int) (*Song, error) {
+	return c.Query().Where(song.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SongClient) GetX(ctx context.Context, id int) *Song {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *SongClient) Hooks() []Hook {
+	return c.hooks.Song
 }
 
 // TokenClient is a client for the Token schema.
@@ -441,7 +538,7 @@ func (c *UserClient) QueryRecord(u *User) *RankingQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(ranking.Table, ranking.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, user.RecordTable, user.RecordColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RecordTable, user.RecordColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

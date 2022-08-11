@@ -84,14 +84,6 @@ func (rc *RankingCreate) SetUserID(id int) *RankingCreate {
 	return rc
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (rc *RankingCreate) SetNillableUserID(id *int) *RankingCreate {
-	if id != nil {
-		rc = rc.SetUserID(*id)
-	}
-	return rc
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (rc *RankingCreate) SetUser(u *User) *RankingCreate {
 	return rc.SetUserID(u.ID)
@@ -203,6 +195,9 @@ func (rc *RankingCreate) check() error {
 	if _, ok := rc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Ranking.updated_at"`)}
 	}
+	if _, ok := rc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Ranking.user"`)}
+	}
 	return nil
 }
 
@@ -273,7 +268,7 @@ func (rc *RankingCreate) createSpec() (*Ranking, *sqlgraph.CreateSpec) {
 	}
 	if nodes := rc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   ranking.UserTable,
 			Columns: []string{ranking.UserColumn},

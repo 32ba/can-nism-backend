@@ -81,14 +81,6 @@ func (ru *RankingUpdate) SetUserID(id int) *RankingUpdate {
 	return ru
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (ru *RankingUpdate) SetNillableUserID(id *int) *RankingUpdate {
-	if id != nil {
-		ru = ru.SetUserID(*id)
-	}
-	return ru
-}
-
 // SetUser sets the "user" edge to the User entity.
 func (ru *RankingUpdate) SetUser(u *User) *RankingUpdate {
 	return ru.SetUserID(u.ID)
@@ -181,6 +173,9 @@ func (ru *RankingUpdate) check() error {
 			return &ValidationError{Name: "score", err: fmt.Errorf(`ent: validator failed for field "Ranking.score": %w`, err)}
 		}
 	}
+	if _, ok := ru.mutation.UserID(); ru.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Ranking.user"`)
+	}
 	return nil
 }
 
@@ -245,7 +240,7 @@ func (ru *RankingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if ru.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   ranking.UserTable,
 			Columns: []string{ranking.UserColumn},
@@ -261,7 +256,7 @@ func (ru *RankingUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := ru.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   ranking.UserTable,
 			Columns: []string{ranking.UserColumn},
@@ -345,14 +340,6 @@ func (ruo *RankingUpdateOne) ClearDeletedAt() *RankingUpdateOne {
 // SetUserID sets the "user" edge to the User entity by ID.
 func (ruo *RankingUpdateOne) SetUserID(id int) *RankingUpdateOne {
 	ruo.mutation.SetUserID(id)
-	return ruo
-}
-
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (ruo *RankingUpdateOne) SetNillableUserID(id *int) *RankingUpdateOne {
-	if id != nil {
-		ruo = ruo.SetUserID(*id)
-	}
 	return ruo
 }
 
@@ -461,6 +448,9 @@ func (ruo *RankingUpdateOne) check() error {
 			return &ValidationError{Name: "score", err: fmt.Errorf(`ent: validator failed for field "Ranking.score": %w`, err)}
 		}
 	}
+	if _, ok := ruo.mutation.UserID(); ruo.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Ranking.user"`)
+	}
 	return nil
 }
 
@@ -542,7 +532,7 @@ func (ruo *RankingUpdateOne) sqlSave(ctx context.Context) (_node *Ranking, err e
 	}
 	if ruo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   ranking.UserTable,
 			Columns: []string{ranking.UserColumn},
@@ -558,7 +548,7 @@ func (ruo *RankingUpdateOne) sqlSave(ctx context.Context) (_node *Ranking, err e
 	}
 	if nodes := ruo.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   ranking.UserTable,
 			Columns: []string{ranking.UserColumn},
