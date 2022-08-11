@@ -42,9 +42,9 @@ func UserSignup(c *gin.Context) {
 		Create().
 		SetUser(user).
 		SetAccessToken(accessToken).
-		SetAccessTokenExpiredAt(time.Now().Add(1 * time.Hour)).
+		SetAccessTokenExpiredAt(time.Now().Add(12 * time.Hour)).
 		SetRefreshToken(refreshToken).
-		SetRefreshTokenExpiredAt(time.Now().Add(24 * time.Hour)).
+		SetRefreshTokenExpiredAt(time.Now().Add(525600 * time.Hour)).
 		Save(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
