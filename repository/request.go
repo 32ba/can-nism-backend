@@ -20,3 +20,7 @@ type GetRankingRequest struct {
 	SongUUID uuid.UUID
 	Type     string
 }
+
+type UpdateUserNameRequest struct {
+	Name string `json:"name"`
+}

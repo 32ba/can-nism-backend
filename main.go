@@ -15,7 +15,10 @@ func main() {
 		userEngine := apiV1.Group("/user")
 		{
 			userEngine.POST("/signup", controller.UserSignup)
-			userEngine.POST("/update")
+			updateEngine := userEngine.Group("/update")
+			{
+				updateEngine.POST("/name", controller.UpdateUserName)
+			}
 		}
 		tokenEngine := apiV1.Group("/token")
 		{
