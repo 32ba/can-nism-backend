@@ -78,7 +78,7 @@ func AddRanking(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-	}else{
+	} else {
 		err := model.DBClient.Ranking.
 			Create().
 			SetScore(addRankingRequest.Score).
