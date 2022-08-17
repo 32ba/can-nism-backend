@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"go-ranking-api/ent"
 	"go-ranking-api/ent/ranking"
 	"go-ranking-api/ent/user"
@@ -120,7 +119,6 @@ func GetRanking(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println(ranking)
 	var r []repository.Ranking
 	for i, e := range ranking {
 		var elem repository.Ranking
