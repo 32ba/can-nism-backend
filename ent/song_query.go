@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
+	"go-ranking-api/ent/asset"
 	"go-ranking-api/ent/predicate"
 	"go-ranking-api/ent/song"
 	"math"
@@ -23,6 +25,8 @@ type SongQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Song
+	// eager-loading edges.
+	withAsset *AssetQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +61,28 @@ func (sq *SongQuery) Unique(unique bool) *SongQuery {
 func (sq *SongQuery) Order(o ...OrderFunc) *SongQuery {
 	sq.order = append(sq.order, o...)
 	return sq
+}
+
+// QueryAsset chains the current query on the "asset" edge.
+func (sq *SongQuery) QueryAsset() *AssetQuery {
+	query := &AssetQuery{config: sq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(song.Table, song.FieldID, selector),
+			sqlgraph.To(asset.Table, asset.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, song.AssetTable, song.AssetColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Song entity from the query.
@@ -240,11 +266,23 @@ func (sq *SongQuery) Clone() *SongQuery {
 		offset:     sq.offset,
 		order:      append([]OrderFunc{}, sq.order...),
 		predicates: append([]predicate.Song{}, sq.predicates...),
+		withAsset:  sq.withAsset.Clone(),
 		// clone intermediate query.
 		sql:    sq.sql.Clone(),
 		path:   sq.path,
 		unique: sq.unique,
 	}
+}
+
+// WithAsset tells the query-builder to eager-load the nodes that are connected to
+// the "asset" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SongQuery) WithAsset(opts ...func(*AssetQuery)) *SongQuery {
+	query := &AssetQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withAsset = query
+	return sq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -313,8 +351,11 @@ func (sq *SongQuery) prepareQuery(ctx context.Context) error {
 
 func (sq *SongQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Song, error) {
 	var (
-		nodes = []*Song{}
-		_spec = sq.querySpec()
+		nodes       = []*Song{}
+		_spec       = sq.querySpec()
+		loadedTypes = [1]bool{
+			sq.withAsset != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		return (*Song).scanValues(nil, columns)
@@ -322,6 +363,7 @@ func (sq *SongQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Song, e
 	_spec.Assign = func(columns []string, values []interface{}) error {
 		node := &Song{config: sq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -333,6 +375,36 @@ func (sq *SongQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Song, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := sq.withAsset; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Song)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Asset = []*Asset{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Asset(func(s *sql.Selector) {
+			s.Where(sql.InValues(song.AssetColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.song_asset
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "song_asset" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "song_asset" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Asset = append(node.Edges.Asset, n)
+		}
+	}
+
 	return nodes, nil
 }
 

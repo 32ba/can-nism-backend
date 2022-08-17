@@ -8,6 +8,19 @@ import (
 	"go-ranking-api/ent"
 )
 
+// The AssetFunc type is an adapter to allow the use of ordinary
+// function as Asset mutator.
+type AssetFunc func(context.Context, *ent.AssetMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AssetFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AssetMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AssetMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RankingFunc type is an adapter to allow the use of ordinary
 // function as Ranking mutator.
 type RankingFunc func(context.Context, *ent.RankingMutation) (ent.Value, error)

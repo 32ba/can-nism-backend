@@ -8,6 +8,38 @@ import (
 )
 
 var (
+	// AssetsColumns holds the columns for the "assets" table.
+	AssetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "platform", Type: field.TypeEnum, Enums: []string{"WINDOWS", "IOS"}, Default: "WINDOWS"},
+		{Name: "path", Type: field.TypeString},
+		{Name: "hash", Type: field.TypeString, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "song_asset", Type: field.TypeInt},
+	}
+	// AssetsTable holds the schema information for the "assets" table.
+	AssetsTable = &schema.Table{
+		Name:       "assets",
+		Columns:    AssetsColumns,
+		PrimaryKey: []*schema.Column{AssetsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "assets_songs_asset",
+				Columns:    []*schema.Column{AssetsColumns[7]},
+				RefColumns: []*schema.Column{SongsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "asset_platform_song_asset",
+				Unique:  true,
+				Columns: []*schema.Column{AssetsColumns[1], AssetsColumns[7]},
+			},
+		},
+	}
 	// RankingsColumns holds the columns for the "rankings" table.
 	RankingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -90,6 +122,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AssetsTable,
 		RankingsTable,
 		SongsTable,
 		TokensTable,
@@ -98,6 +131,7 @@ var (
 )
 
 func init() {
+	AssetsTable.ForeignKeys[0].RefTable = SongsTable
 	RankingsTable.ForeignKeys[0].RefTable = UsersTable
 	TokensTable.ForeignKeys[0].RefTable = UsersTable
 }

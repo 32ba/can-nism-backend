@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go-ranking-api/ent/asset"
 	"go-ranking-api/ent/song"
 	"time"
 
@@ -75,6 +76,21 @@ func (sc *SongCreate) SetNillableDeletedAt(t *time.Time) *SongCreate {
 		sc.SetDeletedAt(*t)
 	}
 	return sc
+}
+
+// AddAssetIDs adds the "asset" edge to the Asset entity by IDs.
+func (sc *SongCreate) AddAssetIDs(ids ...int) *SongCreate {
+	sc.mutation.AddAssetIDs(ids...)
+	return sc
+}
+
+// AddAsset adds the "asset" edges to the Asset entity.
+func (sc *SongCreate) AddAsset(a ...*Asset) *SongCreate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return sc.AddAssetIDs(ids...)
 }
 
 // Mutation returns the SongMutation object of the builder.
@@ -245,6 +261,25 @@ func (sc *SongCreate) createSpec() (*Song, *sqlgraph.CreateSpec) {
 			Column: song.FieldDeletedAt,
 		})
 		_node.DeletedAt = value
+	}
+	if nodes := sc.mutation.AssetIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   song.AssetTable,
+			Columns: []string{song.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: asset.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Asset is the predicate function for asset builders.
+type Asset func(*sql.Selector)
+
 // Ranking is the predicate function for ranking builders.
 type Ranking func(*sql.Selector)
 

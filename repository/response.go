@@ -22,10 +22,15 @@ type GetRankingResponse struct {
 	Ranking     []Ranking `json:"ranking"`
 }
 
-type Song struct{
-	UUID uuid.UUID `json:"uuid"`
-	Title string `json:"name"`
+type Song struct {
+	UUID  uuid.UUID `json:"uuid"`
+	Title string    `json:"name"`
 }
 type GetSongsResponse struct {
-	Songs     []Song `json:"songs"`
+	Songs []Song `json:"songs"`
+}
+
+type GetAssetUrlResponse struct {
+	URL  string `json:"url"`
+	Hash string `json:"hash"`
 }

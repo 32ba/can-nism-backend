@@ -2,12 +2,14 @@ package main
 
 import (
 	"go-ranking-api/controller"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	engine := gin.Default()
+	engine.StaticFS("static/assets", http.Dir("assets"))
 
 	engine.GET("/healthchecker", controller.HealthChecker)
 	apiV1 := engine.Group("/api/v1")
@@ -32,6 +34,7 @@ func main() {
 		songEngine := apiV1.Group("/song")
 		{
 			songEngine.GET("/list", controller.GetSongList)
+			songEngine.POST("/asset", controller.GetAssetURL)
 		}
 	}
 

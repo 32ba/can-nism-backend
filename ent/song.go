@@ -27,6 +27,27 @@ type Song struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SongQuery when eager-loading is set.
+	Edges SongEdges `json:"edges"`
+}
+
+// SongEdges holds the relations/edges for other nodes in the graph.
+type SongEdges struct {
+	// Asset holds the value of the asset edge.
+	Asset []*Asset `json:"asset,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// AssetOrErr returns the Asset value or an error if the edge
+// was not loaded in eager-loading.
+func (e SongEdges) AssetOrErr() ([]*Asset, error) {
+	if e.loadedTypes[0] {
+		return e.Asset, nil
+	}
+	return nil, &NotLoadedError{edge: "asset"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,6 +117,11 @@ func (s *Song) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryAsset queries the "asset" edge of the Song entity.
+func (s *Song) QueryAsset() *AssetQuery {
+	return (&SongClient{config: s.config}).QueryAsset(s)
 }
 
 // Update returns a builder for updating this Song.

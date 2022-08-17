@@ -21,8 +21,17 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// EdgeAsset holds the string denoting the asset edge name in mutations.
+	EdgeAsset = "asset"
 	// Table holds the table name of the song in the database.
 	Table = "songs"
+	// AssetTable is the table that holds the asset relation/edge.
+	AssetTable = "assets"
+	// AssetInverseTable is the table name for the Asset entity.
+	// It exists in this package in order to avoid circular dependency with the "asset" package.
+	AssetInverseTable = "assets"
+	// AssetColumn is the table column denoting the asset relation/edge.
+	AssetColumn = "song_asset"
 )
 
 // Columns holds all SQL columns for song fields.

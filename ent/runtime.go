@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"go-ranking-api/ent/asset"
 	"go-ranking-api/ent/ranking"
 	"go-ranking-api/ent/schema"
 	"go-ranking-api/ent/song"
@@ -15,6 +16,26 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	assetFields := schema.Asset{}.Fields()
+	_ = assetFields
+	// assetDescPath is the schema descriptor for path field.
+	assetDescPath := assetFields[1].Descriptor()
+	// asset.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	asset.PathValidator = assetDescPath.Validators[0].(func(string) error)
+	// assetDescHash is the schema descriptor for hash field.
+	assetDescHash := assetFields[2].Descriptor()
+	// asset.HashValidator is a validator for the "hash" field. It is called by the builders before save.
+	asset.HashValidator = assetDescHash.Validators[0].(func(string) error)
+	// assetDescCreatedAt is the schema descriptor for created_at field.
+	assetDescCreatedAt := assetFields[3].Descriptor()
+	// asset.DefaultCreatedAt holds the default value on creation for the created_at field.
+	asset.DefaultCreatedAt = assetDescCreatedAt.Default.(func() time.Time)
+	// assetDescUpdatedAt is the schema descriptor for updated_at field.
+	assetDescUpdatedAt := assetFields[4].Descriptor()
+	// asset.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	asset.DefaultUpdatedAt = assetDescUpdatedAt.Default.(func() time.Time)
+	// asset.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	asset.UpdateDefaultUpdatedAt = assetDescUpdatedAt.UpdateDefault.(func() time.Time)
 	rankingFields := schema.Ranking{}.Fields()
 	_ = rankingFields
 	// rankingDescScore is the schema descriptor for score field.

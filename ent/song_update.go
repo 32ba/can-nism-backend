@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go-ranking-api/ent/asset"
 	"go-ranking-api/ent/predicate"
 	"go-ranking-api/ent/song"
 	"time"
@@ -81,9 +82,45 @@ func (su *SongUpdate) ClearDeletedAt() *SongUpdate {
 	return su
 }
 
+// AddAssetIDs adds the "asset" edge to the Asset entity by IDs.
+func (su *SongUpdate) AddAssetIDs(ids ...int) *SongUpdate {
+	su.mutation.AddAssetIDs(ids...)
+	return su
+}
+
+// AddAsset adds the "asset" edges to the Asset entity.
+func (su *SongUpdate) AddAsset(a ...*Asset) *SongUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.AddAssetIDs(ids...)
+}
+
 // Mutation returns the SongMutation object of the builder.
 func (su *SongUpdate) Mutation() *SongMutation {
 	return su.mutation
+}
+
+// ClearAsset clears all "asset" edges to the Asset entity.
+func (su *SongUpdate) ClearAsset() *SongUpdate {
+	su.mutation.ClearAsset()
+	return su
+}
+
+// RemoveAssetIDs removes the "asset" edge to Asset entities by IDs.
+func (su *SongUpdate) RemoveAssetIDs(ids ...int) *SongUpdate {
+	su.mutation.RemoveAssetIDs(ids...)
+	return su
+}
+
+// RemoveAsset removes "asset" edges to Asset entities.
+func (su *SongUpdate) RemoveAsset(a ...*Asset) *SongUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return su.RemoveAssetIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -208,6 +245,60 @@ func (su *SongUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: song.FieldDeletedAt,
 		})
 	}
+	if su.mutation.AssetCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   song.AssetTable,
+			Columns: []string{song.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: asset.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedAssetIDs(); len(nodes) > 0 && !su.mutation.AssetCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   song.AssetTable,
+			Columns: []string{song.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: asset.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.AssetIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   song.AssetTable,
+			Columns: []string{song.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: asset.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{song.Label}
@@ -279,9 +370,45 @@ func (suo *SongUpdateOne) ClearDeletedAt() *SongUpdateOne {
 	return suo
 }
 
+// AddAssetIDs adds the "asset" edge to the Asset entity by IDs.
+func (suo *SongUpdateOne) AddAssetIDs(ids ...int) *SongUpdateOne {
+	suo.mutation.AddAssetIDs(ids...)
+	return suo
+}
+
+// AddAsset adds the "asset" edges to the Asset entity.
+func (suo *SongUpdateOne) AddAsset(a ...*Asset) *SongUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.AddAssetIDs(ids...)
+}
+
 // Mutation returns the SongMutation object of the builder.
 func (suo *SongUpdateOne) Mutation() *SongMutation {
 	return suo.mutation
+}
+
+// ClearAsset clears all "asset" edges to the Asset entity.
+func (suo *SongUpdateOne) ClearAsset() *SongUpdateOne {
+	suo.mutation.ClearAsset()
+	return suo
+}
+
+// RemoveAssetIDs removes the "asset" edge to Asset entities by IDs.
+func (suo *SongUpdateOne) RemoveAssetIDs(ids ...int) *SongUpdateOne {
+	suo.mutation.RemoveAssetIDs(ids...)
+	return suo
+}
+
+// RemoveAsset removes "asset" edges to Asset entities.
+func (suo *SongUpdateOne) RemoveAsset(a ...*Asset) *SongUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return suo.RemoveAssetIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -435,6 +562,60 @@ func (suo *SongUpdateOne) sqlSave(ctx context.Context) (_node *Song, err error) 
 			Type:   field.TypeTime,
 			Column: song.FieldDeletedAt,
 		})
+	}
+	if suo.mutation.AssetCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   song.AssetTable,
+			Columns: []string{song.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: asset.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedAssetIDs(); len(nodes) > 0 && !suo.mutation.AssetCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   song.AssetTable,
+			Columns: []string{song.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: asset.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.AssetIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   song.AssetTable,
+			Columns: []string{song.AssetColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: asset.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Song{config: suo.config}
 	_spec.Assign = _node.assignValues

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go-ranking-api/ent/asset"
 	"go-ranking-api/ent/ranking"
 	"go-ranking-api/ent/song"
 	"go-ranking-api/ent/token"
@@ -34,6 +35,7 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		asset.Table:   asset.ValidColumn,
 		ranking.Table: ranking.ValidColumn,
 		song.Table:    song.ValidColumn,
 		token.Table:   token.ValidColumn,

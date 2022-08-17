@@ -24,3 +24,8 @@ type GetRankingRequest struct {
 type UpdateUserNameRequest struct {
 	Name string `json:"name"`
 }
+
+type GetAssetUrlRequest struct {
+	Platform string    `json:"platform"`
+	SongUUID uuid.UUID `json:"song_uuid"`
+}
